@@ -29,6 +29,7 @@ class _ReminderCardState extends State<ReminderCard> with SingleTickerProviderSt
   late final Animation<Offset> _slideIn;
   double _pressScale = 1.0;
   bool _completing = false;
+  bool _exiting = false;
 
   static const _categoryAbbr = {
     ReminderCategory.personal: 'PER',
@@ -62,10 +63,17 @@ class _ReminderCardState extends State<ReminderCard> with SingleTickerProviderSt
 
   @override
   Widget build(BuildContext context) {
-    final state = ReminderProvider.of(context);
     final timeStr = DateFormat('h:mm a').format(widget.reminder.scheduledAt);
 
-    return FadeTransition(
+    return AnimatedOpacity(
+      opacity: _exiting ? 0.0 : 1.0,
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOut,
+      child: AnimatedSlide(
+        offset: _exiting ? const Offset(-0.3, 0) : Offset.zero,
+        duration: const Duration(milliseconds: 250),
+        curve: Curves.easeOut,
+        child: FadeTransition(
       opacity: _fadeIn,
       child: SlideTransition(
         position: _slideIn,
@@ -83,12 +91,19 @@ class _ReminderCardState extends State<ReminderCard> with SingleTickerProviderSt
               direction: DismissDirection.endToStart,
               onDismissed: (_) {
                 final deletedReminder = widget.reminder;
+                final state = ReminderProvider.of(context);
                 state.delete(deletedReminder.id);
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
-                    content: Text('"${deletedReminder.title}" deleted'),
+                    content: Text(
+                      '"${deletedReminder.title}" deleted',
+                      style: const TextStyle(color: Colors.white, fontSize: 13),
+                    ),
                     duration: const Duration(seconds: 4),
                     backgroundColor: const Color(0xFF1A1A1E),
+                    behavior: SnackBarBehavior.floating,
+                    margin: const EdgeInsets.fromLTRB(16, 0, 16, 80),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     action: SnackBarAction(
                       label: 'Undo',
                       textColor: AppColors.primary,
@@ -182,9 +197,16 @@ class _ReminderCardState extends State<ReminderCard> with SingleTickerProviderSt
                       GestureDetector(
                         onTap: () {
                           setState(() => _completing = true);
-                          // ponytail: brief visual feedback before state removes the card
+                          // Flash red for 250ms, then slide out for 250ms, then mark complete
                           Future.delayed(const Duration(milliseconds: 250), () {
-                            if (mounted) state.markComplete(widget.reminder.id);
+                            if (!mounted) return;
+                            setState(() => _exiting = true);
+                          });
+                          Future.delayed(const Duration(milliseconds: 500), () {
+                            if (!mounted) return;
+                            // ignore: use_build_context_synchronously
+                            final state = ReminderProvider.of(context);
+                            state.markComplete(widget.reminder.id);
                           });
                         },
                         child: AnimatedContainer(
@@ -214,6 +236,8 @@ class _ReminderCardState extends State<ReminderCard> with SingleTickerProviderSt
             ),
           ),
         ),
+      ),
+      ),
       ),
     );
   }

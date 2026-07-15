@@ -84,7 +84,25 @@ class _ReminderSheetState extends State<_ReminderSheet> {
       lastDate: DateTime.now().add(const Duration(days: 365)),
       builder: (ctx, child) => Theme(
         data: ThemeData.dark().copyWith(
-          colorScheme: const ColorScheme.dark(primary: AppColors.primary, surface: AppColors.surfaceElevated),
+          colorScheme: ColorScheme.dark(
+            primary: AppColors.primary,
+            surface: AppColors.surface,
+            onSurface: AppColors.textPrimary,
+            onPrimary: Colors.white,
+          ),
+          datePickerTheme: DatePickerThemeData(
+            backgroundColor: AppColors.surface,
+            surfaceTintColor: Colors.transparent,
+            headerBackgroundColor: AppColors.surfaceElevated,
+            headerForegroundColor: AppColors.textPrimary,
+            dayForegroundColor: WidgetStateColor.resolveWith((states) =>
+              states.contains(WidgetState.selected) ? Colors.white : AppColors.textPrimary),
+            dayBackgroundColor: WidgetStateColor.resolveWith((states) =>
+              states.contains(WidgetState.selected) ? AppColors.primary : Colors.transparent),
+            todayForegroundColor: WidgetStateColor.resolveWith((states) =>
+              states.contains(WidgetState.selected) ? Colors.white : AppColors.primary),
+            todayBorder: const BorderSide(color: AppColors.primary),
+          ),
         ),
         child: child!,
       ),
@@ -98,7 +116,32 @@ class _ReminderSheetState extends State<_ReminderSheet> {
       initialTime: _time,
       builder: (ctx, child) => Theme(
         data: ThemeData.dark().copyWith(
-          colorScheme: const ColorScheme.dark(primary: AppColors.primary, surface: AppColors.surfaceElevated),
+          colorScheme: ColorScheme.dark(
+            primary: AppColors.primary,
+            secondary: AppColors.primary,
+            tertiary: AppColors.primary,
+            surface: AppColors.surfaceElevated,
+            onSurface: AppColors.textPrimary,
+            onPrimary: Colors.white,
+            primaryContainer: AppColors.primary.withValues(alpha: 0.2),
+            onPrimaryContainer: AppColors.primary,
+            tertiaryContainer: AppColors.primary.withValues(alpha: 0.2),
+            onTertiaryContainer: AppColors.primary,
+          ),
+          timePickerTheme: TimePickerThemeData(
+            backgroundColor: AppColors.surface,
+            hourMinuteColor: AppColors.surfaceElevated,
+            hourMinuteTextColor: AppColors.textPrimary,
+            dayPeriodColor: WidgetStateColor.resolveWith((states) =>
+              states.contains(WidgetState.selected) ? AppColors.primary.withValues(alpha: 0.2) : AppColors.surfaceElevated),
+            dayPeriodTextColor: WidgetStateColor.resolveWith((states) =>
+              states.contains(WidgetState.selected) ? AppColors.primary : AppColors.textMuted),
+            dayPeriodBorderSide: const BorderSide(color: AppColors.border),
+            dialHandColor: AppColors.primary,
+            dialBackgroundColor: AppColors.surfaceElevated,
+            dialTextColor: AppColors.textPrimary,
+            entryModeIconColor: AppColors.textMuted,
+          ),
         ),
         child: child!,
       ),

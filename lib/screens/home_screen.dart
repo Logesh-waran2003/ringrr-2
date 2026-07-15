@@ -42,10 +42,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
   List<DateTime> _remindersForDate(DateTime date) {
     final state = ReminderProvider.of(context);
-    final startOfDay = DateTime(date.year, date.month, date.day);
-    final endOfDay = startOfDay.add(const Duration(days: 1));
     return state.pendingReminders
-        .where((r) => !r.scheduledAt.isBefore(startOfDay) && r.scheduledAt.isBefore(endOfDay))
+        .where((r) {
+          return r.scheduledAt.year == date.year &&
+                 r.scheduledAt.month == date.month &&
+                 r.scheduledAt.day == date.day;
+        })
         .map((r) => r.scheduledAt)
         .take(8)
         .toList();
