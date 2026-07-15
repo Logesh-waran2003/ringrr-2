@@ -76,16 +76,60 @@ class _HomeScreenState extends State<HomeScreen> {
             style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.textMuted),
           ),
           const SizedBox(height: 8),
-          Text(
-            DateFormat('EEEE, MMMM d').format(DateTime.now()),
-            style: const TextStyle(
-              fontFamily: AppTheme.displayFont,
-              fontSize: 26,
-              fontWeight: FontWeight.w700,
-              color: AppColors.textPrimary,
-              letterSpacing: -0.5,
+          // Swipeable date — controls clock dots and reminder list
+          GestureDetector(
+            onHorizontalDragEnd: (details) {
+              if (details.primaryVelocity == null) return;
+              setState(() {
+                if (details.primaryVelocity! < -100) {
+                  _selectedDate = _selectedDate.add(const Duration(days: 1));
+                } else if (details.primaryVelocity! > 100) {
+                  _selectedDate = _selectedDate.subtract(const Duration(days: 1));
+                }
+              });
+            },
+            child: AnimatedSwitcher(
+              duration: const Duration(milliseconds: 200),
+              transitionBuilder: (child, animation) => FadeTransition(
+                opacity: animation,
+                child: SlideTransition(
+                  position: Tween<Offset>(
+                    begin: const Offset(0.05, 0),
+                    end: Offset.zero,
+                  ).animate(CurvedAnimation(parent: animation, curve: Curves.easeOut)),
+                  child: child,
+                ),
+              ),
+              child: Text(
+                DateFormat('EEEE, MMMM d').format(_selectedDate),
+                key: ValueKey(_selectedDay),
+                style: const TextStyle(
+                  fontFamily: AppTheme.displayFont,
+                  fontSize: 26,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                  letterSpacing: -0.5,
+                ),
+              ),
             ),
           ),
+          if (_selectedDay != _today) ...[
+            const SizedBox(height: 8),
+            GestureDetector(
+              onTap: () => setState(() => _selectedDate = DateTime.now()),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppColors.border),
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: const Text(
+                  'Back to today',
+                  style: TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: AppColors.textMuted),
+                ),
+              ),
+            ),
+          ],
           // Overdue pulse indicator
           if (overdue.isNotEmpty) ...[
             const SizedBox(height: 8),
@@ -102,36 +146,11 @@ class _HomeScreenState extends State<HomeScreen> {
           ],
           const SizedBox(height: 32),
 
-          // Analog clock hero with swipe-to-change-date
-          GestureDetector(
-            onHorizontalDragEnd: (details) {
-              if (details.primaryVelocity == null) return;
-              setState(() {
-                if (details.primaryVelocity! < -100) {
-                  _selectedDate = _selectedDate.add(const Duration(days: 1));
-                } else if (details.primaryVelocity! > 100) {
-                  _selectedDate = _selectedDate.subtract(const Duration(days: 1));
-                }
-              });
-            },
-            child: Column(
-              children: [
-                Center(child: AnalogClock(
-                  size: 140,
-                  reminderTimes: _remindersForDate(_selectedDate),
-                )),
-                if (_selectedDay != _today) ...[
-                  const SizedBox(height: 8),
-                  Center(
-                    child: Text(
-                      DateFormat('EEE, MMM d').format(_selectedDate),
-                      style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
+          // Analog clock hero — dots reflect selected date
+          Center(child: AnalogClock(
+            size: 140,
+            reminderTimes: _remindersForDate(_selectedDate),
+          )),
           const SizedBox(height: 16),
           // Next alarm countdown
           if (_nextReminder(state) != null) ...[
@@ -156,7 +175,18 @@ class _HomeScreenState extends State<HomeScreen> {
           const SizedBox(height: 40),
 
           // Sections or empty state
-          if (!hasPending)
+          if (_selectedDay != _today) ...[
+            // Showing a specific date's reminders
+            _Section(
+              label: DateFormat('EEEE').format(_selectedDate).toUpperCase(),
+              reminders: state.pendingReminders
+                  .where((r) => r.scheduledAt.year == _selectedDate.year &&
+                                r.scheduledAt.month == _selectedDate.month &&
+                                r.scheduledAt.day == _selectedDate.day)
+                  .toList()
+                ..sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt)),
+            ),
+          ] else if (!hasPending)
             _EmptyState()
           else ...[
             if (overdue.isNotEmpty)

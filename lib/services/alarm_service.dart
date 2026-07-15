@@ -1,89 +1,101 @@
 import 'package:flutter/material.dart';
+import 'package:android_alarm_manager_plus/android_alarm_manager_plus.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:timezone/data/latest_all.dart' as tz;
-import 'package:timezone/timezone.dart' as tz;
 import 'package:ringrr/data/reminder_repository.dart';
 import 'package:ringrr/models/reminder.dart';
 import 'package:ringrr/screens/alarm_screen.dart';
 import 'package:ringrr/services/navigator_key.dart';
 
 class AlarmService {
-  static final _plugin = FlutterLocalNotificationsPlugin();
+  static final _notifPlugin = FlutterLocalNotificationsPlugin();
 
   static Future<void> init() async {
-    tz.initializeTimeZones();
-    // ponytail: hardcoded to Asia/Kolkata. Ceiling: breaks for users outside IST.
-    // Upgrade path: add flutter_timezone package and call FlutterTimezone.getLocalTimezone().
-    tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
+    await AndroidAlarmManager.initialize();
 
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
     const initSettings = InitializationSettings(android: androidSettings);
 
-    await _plugin.initialize(
+    await _notifPlugin.initialize(
       settings: initSettings,
-      onDidReceiveNotificationResponse: _onTap,
+      onDidReceiveNotificationResponse: _onNotifTap,
     );
 
-    final android = _plugin
+    final android = _notifPlugin
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
 
-    await android?.createNotificationChannel(const AndroidNotificationChannel(
-      'ringrr_alarms',
-      'Reminders',
-      importance: Importance.max,
-    ));
-
     if (android != null) {
-      // Android 13+ requires runtime permission for notifications
-      final notifGranted = await android.requestNotificationsPermission();
-      debugPrint('[AlarmService] Notification permission: $notifGranted');
-
-      // Android 12+ requires explicit permission for exact alarms
-      // This opens Settings if not already granted
-      final exactGranted = await android.canScheduleExactNotifications();
-      debugPrint('[AlarmService] Exact alarm permission: $exactGranted');
-      if (exactGranted != true) {
-        await android.requestExactAlarmsPermission();
-      }
-
-      // Android 14+ requires permission for full-screen intents
-      await android.requestFullScreenIntentPermission();
+      await android.createNotificationChannel(const AndroidNotificationChannel(
+        'ringrr_alarms',
+        'Reminders',
+        importance: Importance.max,
+      ));
+      await android.requestNotificationsPermission();
     }
   }
 
+  /// Schedule an alarm using AndroidAlarmManager (fires even in Doze)
   static Future<void> scheduleAlarm(Reminder reminder) async {
-    final scheduledDate = tz.TZDateTime.from(reminder.scheduledAt, tz.local);
-    if (scheduledDate.isBefore(tz.TZDateTime.now(tz.local))) return;
+    if (reminder.scheduledAt.isBefore(DateTime.now())) return;
 
+    await AndroidAlarmManager.oneShotAt(
+      reminder.scheduledAt,
+      reminder.id.hashCode,
+      _alarmFired,
+      exact: true,
+      wakeup: true,
+      rescheduleOnReboot: true,
+      alarmClock: true,
+    );
+  }
+
+  /// Cancel a scheduled alarm
+  static Future<void> cancelAlarm(String reminderId) async {
+    await AndroidAlarmManager.cancel(reminderId.hashCode);
+  }
+
+  /// Callback fired by AndroidAlarmManager when alarm time arrives.
+  /// Runs in an isolate — show notification to bring user back to app.
+  @pragma('vm:entry-point')
+  static Future<void> _alarmFired(int id) async {
+    // Show a high-priority notification that brings the user to the alarm screen
     const androidDetails = AndroidNotificationDetails(
       'ringrr_alarms',
       'Reminders',
       importance: Importance.max,
       priority: Priority.high,
       fullScreenIntent: true,
+      ongoing: true,
+      autoCancel: false,
       category: AndroidNotificationCategory.alarm,
       audioAttributesUsage: AudioAttributesUsage.alarm,
+      visibility: NotificationVisibility.public,
     );
     const details = NotificationDetails(android: androidDetails);
 
-    await _plugin.zonedSchedule(
-      id: reminder.id.hashCode,
-      title: reminder.title,
-      body: reminder.description,
-      scheduledDate: scheduledDate,
+    // We need to init the notification plugin in this isolate
+    const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
+    const initSettings = InitializationSettings(android: androidSettings);
+    final plugin = FlutterLocalNotificationsPlugin();
+    await plugin.initialize(settings: initSettings);
+
+    // Find which reminder this alarm is for
+    final repo = ReminderRepository();
+    final all = await repo.getAll();
+    final reminder = all.where((r) => r.id.hashCode == id).firstOrNull;
+
+    await plugin.show(
+      id: id,
+      title: reminder?.title ?? 'Reminder',
+      body: reminder?.description ?? 'Time for your reminder',
       notificationDetails: details,
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      payload: reminder.id,
+      payload: reminder?.id ?? '',
     );
   }
 
-  static Future<void> cancelAlarm(String reminderId) async {
-    await _plugin.cancel(id: reminderId.hashCode);
-  }
-
-  static void _onTap(NotificationResponse response) async {
+  /// Handle notification tap — navigate to alarm screen
+  static void _onNotifTap(NotificationResponse response) async {
     final payload = response.payload;
-    if (payload == null) return;
+    if (payload == null || payload.isEmpty) return;
 
     final reminder = await ReminderRepository().getById(payload);
     if (reminder == null) return;
