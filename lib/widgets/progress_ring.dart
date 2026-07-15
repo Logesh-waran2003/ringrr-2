@@ -6,12 +6,14 @@ class ProgressRing extends StatelessWidget {
   final double percentage;
   final double radius;
   final double strokeWidth;
+  final Color? progressColor;
 
   const ProgressRing({
     super.key,
     required this.percentage,
     this.radius = 38,
     this.strokeWidth = 9,
+    this.progressColor,
   });
 
   @override
@@ -21,7 +23,7 @@ class ProgressRing extends StatelessWidget {
       painter: _ProgressRingPainter(
         percentage: percentage,
         trackColor: AppColors.border,
-        progressColor: AppColors.primary,
+        progressColor: progressColor ?? AppColors.primary,
         strokeWidth: strokeWidth,
       ),
     );

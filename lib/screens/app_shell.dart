@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:ringrr/screens/create_reminder_sheet.dart';
+import 'package:ringrr/screens/history_screen.dart';
 import 'package:ringrr/screens/home_screen.dart';
 import 'package:ringrr/theme/app_theme.dart';
 
@@ -20,13 +22,7 @@ class _AppShellState extends State<AppShell> {
         index: _currentIndex,
         children: const [
           HomeScreen(),
-          // ponytail: History screen placeholder — will be its own file later
-          Center(
-            child: Text(
-              'History',
-              style: TextStyle(color: AppColors.textMuted, fontSize: 16),
-            ),
-          ),
+          HistoryScreen(),
         ],
       ),
       bottomNavigationBar: Container(
@@ -62,10 +58,7 @@ class _AppShellState extends State<AppShell> {
           border: Border.all(color: AppColors.bg, width: 5),
         ),
         child: FloatingActionButton(
-          onPressed: () {
-            // ponytail: placeholder — will open create sheet when built
-            debugPrint('Open create sheet');
-          },
+          onPressed: () => showCreateReminderSheet(context),
           backgroundColor: AppColors.primary,
           elevation: 0,
           shape: const CircleBorder(),
