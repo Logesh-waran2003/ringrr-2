@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'theme/app_theme.dart';
+import 'package:ringrr/data/reminder_provider.dart';
+import 'package:ringrr/data/reminder_state.dart';
+import 'package:ringrr/screens/app_shell.dart';
+import 'package:ringrr/theme/app_theme.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -9,41 +12,27 @@ void main() async {
     statusBarColor: Colors.transparent,
     statusBarIconBrightness: Brightness.light,
   ));
-  runApp(const RingrrApp());
+
+  final state = ReminderState();
+  state.load();
+
+  runApp(RingrrApp(state: state));
 }
 
 class RingrrApp extends StatelessWidget {
-  const RingrrApp({super.key});
+  final ReminderState state;
+
+  const RingrrApp({super.key, required this.state});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Ringr',
-      theme: AppTheme.dark,
-      debugShowCheckedModeBanner: false,
-      home: const Scaffold(
-        backgroundColor: Color(0xFF0D0E16),
-        body: Center(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Ringr',
-                style: TextStyle(
-                  color: Color(0xFF00C9C8),
-                  fontSize: 40,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: -1,
-                ),
-              ),
-              SizedBox(height: 8),
-              Text(
-                'Setting up...',
-                style: TextStyle(color: Color(0xFF5A5B6E), fontSize: 14),
-              ),
-            ],
-          ),
-        ),
+    return ReminderProvider(
+      state: state,
+      child: MaterialApp(
+        title: 'Ringrr',
+        theme: AppTheme.dark,
+        debugShowCheckedModeBanner: false,
+        home: const AppShell(),
       ),
     );
   }

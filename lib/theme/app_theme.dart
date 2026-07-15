@@ -2,15 +2,15 @@ import 'package:flutter/material.dart';
 
 class AppColors {
   static const bg = Color(0xFF0D0E16);
-  static const surface = Color(0xFF161820);
-  static const surfaceElevated = Color(0xFF1C1E2A);
-  static const border = Color(0xFF2A2B3A);
+  static const surface = Color(0xFF14161F);
+  static const surfaceElevated = Color(0xFF1B1E2C);
+  static const border = Color(0xFF262838);
   static const primary = Color(0xFF00C9C8);
   static const positive = Color(0xFF10B981);
   static const negative = Color(0xFFF97316);
   static const textPrimary = Color(0xFFFFFFFF);
-  static const textSecondary = Color(0xFFC4C4D4);
-  static const textMuted = Color(0xFF5A5B6E);
+  static const textSecondary = Color(0xFFC7C9DA);
+  static const textMuted = Color(0xFF9496AC);
   static const personal = Color(0xFF8B5CF6);
   static const work = Color(0xFF3B82F6);
   static const health = Color(0xFF10B981);
