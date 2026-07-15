@@ -65,7 +65,9 @@ class _AlarmScreenState extends State<AlarmScreen> with SingleTickerProviderStat
     final ampm = DateFormat('a').format(now);
     final date = DateFormat('EEEE, MMMM d').format(now).toUpperCase();
 
-    return Scaffold(
+    return PopScope(
+      canPop: false, // Can't back out of alarm — must dismiss or snooze
+      child: Scaffold(
       backgroundColor: AppColors.bg,
       body: SafeArea(
         child: Padding(
@@ -228,6 +230,6 @@ class _AlarmScreenState extends State<AlarmScreen> with SingleTickerProviderStat
           ),
         ),
       ),
-    );
+    ));
   }
 }

@@ -76,10 +76,11 @@ class AlarmForegroundService : Service() {
         // Start ringing
         AlarmRinger.start(applicationContext)
 
-        // Turn screen on and launch the activity
+        // Turn screen on and launch the activity with alarm flags
         val launchIntent = Intent(this, MainActivity::class.java).apply {
-            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
             putExtra("alarm_reminder_id", reminderId)
+            putExtra("alarm_locked", true)
         }
         startActivity(launchIntent)
     }
