@@ -4,6 +4,7 @@ import 'package:ringrr/data/reminder_provider.dart';
 import 'package:ringrr/data/reminder_state.dart';
 import 'package:ringrr/models/reminder.dart';
 import 'package:ringrr/screens/app_shell.dart';
+import 'package:ringrr/services/alarm_ringer.dart';
 import 'package:ringrr/services/alarm_service.dart';
 import 'package:ringrr/services/navigator_key.dart';
 import 'package:ringrr/theme/app_theme.dart';
@@ -18,12 +19,21 @@ void main() async {
   ));
 
   await AlarmService.init();
+  AlarmRinger.init(); // Listen for alarm intents from native
   await _seedIfEmpty();
 
   final state = ReminderState();
   await state.load();
 
   runApp(RingrrApp(state: state));
+
+  // Check if app was launched by an alarm
+  WidgetsBinding.instance.addPostFrameCallback((_) async {
+    final pendingId = await AlarmRinger.getPendingAlarmId();
+    if (pendingId != null && pendingId.isNotEmpty) {
+      await AlarmService.handleAlarmIntent(pendingId);
+    }
+  });
 }
 
 Future<void> _seedIfEmpty() async {

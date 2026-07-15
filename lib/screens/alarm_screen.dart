@@ -4,6 +4,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:ringrr/data/reminder_provider.dart';
 import 'package:ringrr/models/reminder.dart';
 import 'package:ringrr/services/alarm_ringer.dart';
+import 'package:ringrr/services/alarm_service.dart';
 import 'package:ringrr/theme/app_theme.dart';
 
 class AlarmScreen extends StatefulWidget {
@@ -41,6 +42,7 @@ class _AlarmScreenState extends State<AlarmScreen> with SingleTickerProviderStat
 
   void _snooze() {
     AlarmRinger.stop();
+    AlarmService.stopForegroundAlarm();
     final state = ReminderProvider.of(context);
     state.update(widget.reminder.copyWith(
       scheduledAt: DateTime.now().add(const Duration(minutes: 5)),
@@ -50,6 +52,7 @@ class _AlarmScreenState extends State<AlarmScreen> with SingleTickerProviderStat
 
   void _dismiss() {
     AlarmRinger.stop();
+    AlarmService.stopForegroundAlarm();
     final state = ReminderProvider.of(context);
     state.dismiss(widget.reminder.id);
     Navigator.of(context).pop();
