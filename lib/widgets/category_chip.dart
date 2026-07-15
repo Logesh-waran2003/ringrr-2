@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ringrr/models/reminder.dart';
+import 'package:ringrr/theme/app_theme.dart';
 
 class CategoryChip extends StatelessWidget {
   final ReminderCategory category;
@@ -12,9 +13,8 @@ class CategoryChip extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
+        color: color.withValues(alpha: 0.10),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(color: color.withValues(alpha: 0.35)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
@@ -27,8 +27,8 @@ class CategoryChip extends StatelessWidget {
           const SizedBox(width: 6),
           Text(
             category.label,
-            style: TextStyle(
-              color: color,
+            style: const TextStyle(
+              color: AppColors.textSecondary,
               fontSize: 13,
               fontWeight: FontWeight.w600,
             ),

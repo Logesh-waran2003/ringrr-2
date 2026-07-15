@@ -12,6 +12,9 @@ class AlarmService {
 
   static Future<void> init() async {
     tz.initializeTimeZones();
+    // ponytail: hardcoded to Asia/Kolkata. Ceiling: breaks for users outside IST.
+    // Upgrade path: add flutter_timezone package and call FlutterTimezone.getLocalTimezone().
+    tz.setLocalLocation(tz.getLocation('Asia/Kolkata'));
 
     const androidSettings = AndroidInitializationSettings('@mipmap/ic_launcher');
     const initSettings = InitializationSettings(android: androidSettings);
@@ -21,13 +24,21 @@ class AlarmService {
       onDidReceiveNotificationResponse: _onTap,
     );
 
-    await _plugin
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-        ?.createNotificationChannel(const AndroidNotificationChannel(
-          'ringrr_alarms',
-          'Reminders',
-          importance: Importance.max,
-        ));
+    final android = _plugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+
+    await android?.createNotificationChannel(const AndroidNotificationChannel(
+      'ringrr_alarms',
+      'Reminders',
+      importance: Importance.max,
+    ));
+
+    // Android 13+ requires runtime permission for notifications
+    await android?.requestNotificationsPermission();
+    // Android 12+ requires explicit permission for exact alarms
+    await android?.requestExactAlarmsPermission();
+    // Android 14+ requires permission for full-screen intents
+    await android?.requestFullScreenIntentPermission();
   }
 
   static Future<void> scheduleAlarm(Reminder reminder) async {

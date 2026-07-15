@@ -159,7 +159,6 @@ class _HistoryRow extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border, width: 0.5),
         ),
         child: Row(
           children: [

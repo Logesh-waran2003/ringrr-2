@@ -36,7 +36,7 @@ class HomeScreen extends StatelessWidget {
     final percentage = total > 0 ? (doneCount / total * 100) : 0.0;
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(20, 64, 20, 100),
+      padding: const EdgeInsets.fromLTRB(22, 68, 22, 100),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -53,8 +53,9 @@ class HomeScreen extends StatelessWidget {
           Text(
             DateFormat('EEEE, MMMM d').format(DateTime.now()),
             style: const TextStyle(
-              fontSize: 22,
+              fontSize: 26,
               fontWeight: FontWeight.w700,
+              letterSpacing: -0.5,
               color: AppColors.textPrimary,
             ),
           ),
@@ -70,7 +71,6 @@ class HomeScreen extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: AppColors.surface,
                   borderRadius: BorderRadius.circular(20),
-                  border: Border.all(color: AppColors.border, width: 1),
                 ),
                 child: Stack(
                   alignment: Alignment.center,
@@ -195,17 +195,17 @@ class _ReminderSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 22),
+      padding: const EdgeInsets.only(bottom: 28),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             label,
             style: const TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
               color: AppColors.textMuted,
-              letterSpacing: 1,
+              letterSpacing: 1.2,
             ),
           ),
           const SizedBox(height: 10),

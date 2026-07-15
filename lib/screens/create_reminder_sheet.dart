@@ -172,7 +172,7 @@ class _ReminderSheetState extends State<_ReminderSheet> {
           // Body
           Expanded(
             child: SingleChildScrollView(
-              padding: EdgeInsets.fromLTRB(18, 0, 18, bottomInset + 16),
+              padding: EdgeInsets.fromLTRB(20, 0, 20, bottomInset + 16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -269,7 +269,7 @@ class _ReminderSheetState extends State<_ReminderSheet> {
         contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 16),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: AppColors.border),
+          borderSide: BorderSide.none,
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),

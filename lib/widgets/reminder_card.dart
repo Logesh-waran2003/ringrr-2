@@ -39,9 +39,13 @@ class ReminderCard extends StatelessWidget {
       child: GestureDetector(
         onTap: () => showEditReminderSheet(context, reminder),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
-            color: AppColors.surface,
+            gradient: const LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [Color(0xFF151821), Color(0xFF0E1017)],
+            ),
             borderRadius: BorderRadius.circular(20),
           ),
           child: Row(
@@ -115,12 +119,9 @@ class ReminderCard extends StatelessWidget {
                 child: Container(
                   width: 44,
                   height: 44,
-                  decoration: BoxDecoration(
+                  decoration: const BoxDecoration(
                     shape: BoxShape.circle,
-                    border: Border.all(
-                      color: const Color(0xFF5A5D72),
-                      width: 1.5,
-                    ),
+                    color: Color(0xFF1A1D28),
                   ),
                   child: const Icon(
                     Icons.check,

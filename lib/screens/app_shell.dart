@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:ringrr/screens/create_reminder_sheet.dart';
 import 'package:ringrr/screens/history_screen.dart';
@@ -25,29 +27,33 @@ class _AppShellState extends State<AppShell> {
           HistoryScreen(),
         ],
       ),
-      bottomNavigationBar: Container(
-        decoration: const BoxDecoration(
-          color: AppColors.surface,
-          border: Border(top: BorderSide(color: AppColors.border, width: 0.5)),
-        ),
-        child: SafeArea(
-          child: SizedBox(
-            height: 60,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                _NavTab(
-                  icon: Icons.home_rounded,
-                  selected: _currentIndex == 0,
-                  onTap: () => setState(() => _currentIndex = 0),
+      bottomNavigationBar: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: Container(
+            decoration: BoxDecoration(
+              color: AppColors.surface.withValues(alpha: 0.85),
+            ),
+            child: SafeArea(
+              child: SizedBox(
+                height: 60,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    _NavTab(
+                      icon: Icons.home_rounded,
+                      selected: _currentIndex == 0,
+                      onTap: () => setState(() => _currentIndex = 0),
+                    ),
+                    const SizedBox(width: 56), // space for FAB
+                    _NavTab(
+                      icon: Icons.history_rounded,
+                      selected: _currentIndex == 1,
+                      onTap: () => setState(() => _currentIndex = 1),
+                    ),
+                  ],
                 ),
-                const SizedBox(width: 56), // space for FAB
-                _NavTab(
-                  icon: Icons.history_rounded,
-                  selected: _currentIndex == 1,
-                  onTap: () => setState(() => _currentIndex = 1),
-                ),
-              ],
+              ),
             ),
           ),
         ),
