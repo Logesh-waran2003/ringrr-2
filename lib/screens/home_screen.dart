@@ -1,10 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:ringrr/data/reminder_provider.dart';
+import 'package:ringrr/data/reminder_state.dart';
 import 'package:ringrr/models/reminder.dart';
 import 'package:ringrr/screens/create_reminder_sheet.dart';
 import 'package:ringrr/theme/app_theme.dart';
+import 'package:ringrr/widgets/analog_clock.dart';
 import 'package:ringrr/widgets/reminder_card.dart';
+
+Reminder? _nextReminder(ReminderState state) {
+  final all = [...state.todayReminders, ...state.tomorrowReminders, ...state.upcomingReminders];
+  if (all.isEmpty) return null;
+  all.sort((a, b) => a.scheduledAt.compareTo(b.scheduledAt));
+  return all.first;
+}
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -27,9 +36,6 @@ class HomeScreen extends StatelessWidget {
     final hasPending = overdue.isNotEmpty || today.isNotEmpty || tomorrow.isNotEmpty || upcoming.isNotEmpty;
 
     final doneCount = completedToday.length;
-    final pendingTodayOrOverdue = today.length + overdue.length;
-    final total = doneCount + pendingTodayOrOverdue;
-    final percentage = total > 0 ? (doneCount / total * 100) : 0.0;
 
     return SingleChildScrollView(
       padding: const EdgeInsets.fromLTRB(22, 72, 22, 110),
@@ -41,7 +47,7 @@ class HomeScreen extends StatelessWidget {
             _greeting,
             style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500, color: AppColors.textMuted),
           ),
-          const SizedBox(height: 4),
+          const SizedBox(height: 8),
           Text(
             DateFormat('EEEE, MMMM d').format(DateTime.now()),
             style: const TextStyle(
@@ -52,40 +58,46 @@ class HomeScreen extends StatelessWidget {
               letterSpacing: -0.5,
             ),
           ),
+          // Overdue pulse indicator
+          if (overdue.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const _PulsingDot(),
+                const SizedBox(width: 6),
+                Text(
+                  '${overdue.length} overdue',
+                  style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.primary),
+                ),
+              ],
+            ),
+          ],
           const SizedBox(height: 32),
 
-          // Stats row — naked numbers, no card wrappers
+          // Analog clock hero
+          const Center(child: AnalogClock(size: 140)),
+          const SizedBox(height: 16),
+          // Next alarm countdown
+          if (_nextReminder(state) != null) ...[
+            Center(
+              child: _NextAlarmLabel(reminder: _nextReminder(state)!),
+            ),
+            const SizedBox(height: 24),
+          ],
+          // Stats row
           Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // Progress ring — floats on bg
-              SizedBox(
-                width: 72,
-                height: 72,
-                child: CustomPaint(
-                  painter: _RingPainter(percentage),
-                  child: Center(
-                    child: Text(
-                      '${percentage.round()}%',
-                      style: const TextStyle(
-                        fontFamily: AppTheme.displayFont,
-                        fontSize: 16,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 28),
               _Stat(value: '${today.length + tomorrow.length + upcoming.length}', label: 'PENDING'),
-              const SizedBox(width: 28),
+              const SizedBox(width: 32),
               _Stat(value: '$doneCount', label: 'DONE'),
-              const SizedBox(width: 28),
-              if (overdue.isNotEmpty)
+              if (overdue.isNotEmpty) ...[
+                const SizedBox(width: 32),
                 _Stat(value: '${overdue.length}', label: 'LATE', isAlert: true),
+              ],
             ],
           ),
-          const SizedBox(height: 36),
+          const SizedBox(height: 40),
 
           // Sections or empty state
           if (!hasPending)
@@ -101,6 +113,60 @@ class HomeScreen extends StatelessWidget {
               _Section(label: 'UPCOMING', reminders: upcoming, showDate: true),
           ],
         ],
+      ),
+    );
+  }
+}
+
+class _PulsingDot extends StatefulWidget {
+  const _PulsingDot();
+
+  @override
+  State<_PulsingDot> createState() => _PulsingDotState();
+}
+
+class _PulsingDotState extends State<_PulsingDot> with SingleTickerProviderStateMixin {
+  late final AnimationController _ctrl;
+
+  @override
+  void initState() {
+    super.initState();
+    _ctrl = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1500),
+    )..repeat();
+  }
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _ctrl,
+      builder: (context, child) {
+        // ponytail: triangle wave for smooth pulse
+        final t = _ctrl.value < 0.5 ? _ctrl.value * 2 : (1 - _ctrl.value) * 2;
+        final scale = 1.0 + t * 0.3;
+        final opacity = 1.0 - t * 0.25;
+        return Transform.scale(
+          scale: scale,
+          child: Opacity(
+            opacity: opacity,
+            child: child,
+          ),
+        );
+      },
+      child: Container(
+        width: 7,
+        height: 7,
+        decoration: const BoxDecoration(
+          color: AppColors.primary,
+          shape: BoxShape.circle,
+        ),
       ),
     );
   }
@@ -153,7 +219,7 @@ class _Section extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 28),
+      padding: const EdgeInsets.only(bottom: 32),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -166,11 +232,12 @@ class _Section extends StatelessWidget {
               letterSpacing: 1.5,
             ),
           ),
-          const SizedBox(height: 12),
-          ...reminders.map((r) => ReminderCard(
-            reminder: r,
+          const SizedBox(height: 16),
+          ...reminders.asMap().entries.map((entry) => ReminderCard(
+            reminder: entry.value,
             isOverdue: isOverdue,
             showDate: showDate,
+            index: entry.key,
           )),
         ],
       ),
@@ -222,43 +289,52 @@ class _EmptyState extends StatelessWidget {
   }
 }
 
-class _RingPainter extends CustomPainter {
-  final double percentage;
-  _RingPainter(this.percentage);
+class _NextAlarmLabel extends StatelessWidget {
+  final Reminder reminder;
+  const _NextAlarmLabel({required this.reminder});
 
-  @override
-  void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width / 2, size.height / 2);
-    final radius = size.width / 2 - 5;
-    const strokeWidth = 6.0;
-
-    // Track
-    canvas.drawCircle(
-      center,
-      radius,
-      Paint()
-        ..color = AppColors.border
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeWidth,
-    );
-
-    // Progress
-    if (percentage > 0) {
-      final sweepAngle = (percentage / 100) * 2 * 3.14159;
-      canvas.drawArc(
-        Rect.fromCircle(center: center, radius: radius),
-        -3.14159 / 2,
-        sweepAngle,
-        false,
-        Paint()
-          ..color = AppColors.primary
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = strokeWidth
-          ..strokeCap = StrokeCap.round,
-      );
-    }
+  String _relativeTime() {
+    final diff = reminder.scheduledAt.difference(DateTime.now());
+    if (diff.isNegative) return 'now';
+    if (diff.inMinutes < 60) return 'in ${diff.inMinutes}m';
+    if (diff.inHours < 24) return 'in ${diff.inHours}h ${diff.inMinutes % 60}m';
+    return 'in ${diff.inDays}d';
   }
 
   @override
-  bool shouldRepaint(_RingPainter old) => old.percentage != percentage;
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Container(
+          width: 6,
+          height: 6,
+          decoration: const BoxDecoration(
+            color: AppColors.primary,
+            shape: BoxShape.circle,
+          ),
+        ),
+        const SizedBox(width: 8),
+        Text(
+          reminder.title,
+          style: const TextStyle(
+            fontFamily: AppTheme.displayFont,
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textSecondary,
+          ),
+        ),
+        const SizedBox(width: 6),
+        Text(
+          _relativeTime(),
+          style: const TextStyle(
+            fontFamily: AppTheme.displayFont,
+            fontSize: 14,
+            fontWeight: FontWeight.w700,
+            color: AppColors.primary,
+          ),
+        ),
+      ],
+    );
+  }
 }

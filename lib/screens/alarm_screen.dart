@@ -20,9 +20,10 @@ class _AlarmScreenState extends State<AlarmScreen> with SingleTickerProviderStat
   @override
   void initState() {
     super.initState();
+    // ponytail: slower 2s breathe for restrained, confident feel
     _pulseCtrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1200),
+      duration: const Duration(milliseconds: 2000),
     )..repeat(reverse: true);
 
     AlarmRinger.start();
@@ -63,43 +64,64 @@ class _AlarmScreenState extends State<AlarmScreen> with SingleTickerProviderStat
 
     return Scaffold(
       backgroundColor: AppColors.bg,
-      body: AnimatedBuilder(
-        animation: _pulseCtrl,
-        builder: (context, child) {
-          final pulse = _pulseCtrl.value;
-          return Container(
-            width: double.infinity,
-            height: double.infinity,
-            color: Color.lerp(AppColors.bg, const Color(0xFF1A0000), pulse * 0.6),
-            child: child,
-          );
-        },
-        child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 28),
-            child: Column(
-              children: [
-                const SizedBox(height: 48),
-                // RINGING indicator
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    border: Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
-                    borderRadius: BorderRadius.circular(999),
-                  ),
-                  child: const Text(
-                    'RINGING',
-                    style: TextStyle(
-                      fontSize: 11,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.primary,
-                      letterSpacing: 2,
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 28),
+          child: Column(
+            children: [
+              const SizedBox(height: 48),
+              // RINGING indicator with pulsing dot
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  AnimatedBuilder(
+                    animation: _pulseCtrl,
+                    builder: (context, child) {
+                      final t = _pulseCtrl.value;
+                      return Opacity(
+                        opacity: 0.6 + t * 0.4,
+                        child: child,
+                      );
+                    },
+                    child: Container(
+                      width: 6,
+                      height: 6,
+                      decoration: const BoxDecoration(
+                        color: AppColors.primary,
+                        shape: BoxShape.circle,
+                      ),
                     ),
                   ),
-                ),
-                const Spacer(flex: 2),
-                // Time
-                Row(
+                  const SizedBox(width: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      border: Border.all(color: AppColors.primary.withValues(alpha: 0.4)),
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: const Text(
+                      'RINGING',
+                      style: TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.primary,
+                        letterSpacing: 2,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const Spacer(flex: 2),
+              // Time — breathing opacity
+              AnimatedBuilder(
+                animation: _pulseCtrl,
+                builder: (context, child) {
+                  return Opacity(
+                    opacity: 0.85 + (_pulseCtrl.value * 0.15),
+                    child: child,
+                  );
+                },
+                child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.baseline,
                   textBaseline: TextBaseline.alphabetic,
@@ -126,80 +148,80 @@ class _AlarmScreenState extends State<AlarmScreen> with SingleTickerProviderStat
                     ),
                   ],
                 ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                date,
+                style: const TextStyle(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.textMuted,
+                  letterSpacing: 2.5,
+                ),
+              ),
+              const SizedBox(height: 40),
+              // Reminder info
+              Text(
+                widget.reminder.title,
+                style: const TextStyle(
+                  fontFamily: AppTheme.displayFont,
+                  fontSize: 20,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textPrimary,
+                ),
+                textAlign: TextAlign.center,
+              ),
+              if (widget.reminder.description.isNotEmpty) ...[
                 const SizedBox(height: 8),
                 Text(
-                  date,
-                  style: const TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textMuted,
-                    letterSpacing: 2.5,
-                  ),
-                ),
-                const SizedBox(height: 40),
-                // Reminder info
-                Text(
-                  widget.reminder.title,
-                  style: const TextStyle(
-                    fontFamily: AppTheme.displayFont,
-                    fontSize: 20,
-                    fontWeight: FontWeight.w700,
-                    color: AppColors.textPrimary,
-                  ),
+                  widget.reminder.description,
+                  style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
                   textAlign: TextAlign.center,
                 ),
-                if (widget.reminder.description.isNotEmpty) ...[
-                  const SizedBox(height: 8),
-                  Text(
-                    widget.reminder.description,
-                    style: const TextStyle(fontSize: 14, color: AppColors.textSecondary),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-                const Spacer(flex: 3),
-                // Buttons
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: GestureDetector(
-                    onTap: _dismiss,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: AppColors.primary,
-                        borderRadius: BorderRadius.circular(999),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          'Dismiss',
-                          style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                SizedBox(
-                  width: double.infinity,
-                  height: 52,
-                  child: GestureDetector(
-                    onTap: _snooze,
-                    child: Container(
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(999),
-                        border: Border.all(color: AppColors.border, width: 1.5),
-                      ),
-                      child: const Center(
-                        child: Text(
-                          'Snooze 5 min',
-                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: 40),
               ],
-            ),
+              const Spacer(flex: 3),
+              // Buttons
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: GestureDetector(
+                  onTap: _dismiss,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.primary,
+                      borderRadius: BorderRadius.circular(999),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'Dismiss',
+                        style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                height: 52,
+                child: GestureDetector(
+                  onTap: _snooze,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(color: AppColors.border, width: 1.5),
+                    ),
+                    child: const Center(
+                      child: Text(
+                        'Snooze 5 min',
+                        style: TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 40),
+            ],
           ),
         ),
       ),
