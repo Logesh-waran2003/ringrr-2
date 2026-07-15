@@ -142,7 +142,7 @@ class _ReminderSheetState extends State<_ReminderSheet> {
     return Container(
       height: MediaQuery.of(context).size.height * 0.9,
       decoration: const BoxDecoration(
-        color: AppColors.surfaceElevated,
+        color: AppColors.surface,
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: Column(
@@ -167,6 +167,8 @@ class _ReminderSheetState extends State<_ReminderSheet> {
             ),
           ),
           const SizedBox(height: 16),
+          const Divider(height: 1, color: AppColors.border),
+          const SizedBox(height: 8),
           // Body
           Expanded(
             child: SingleChildScrollView(
@@ -181,46 +183,46 @@ class _ReminderSheetState extends State<_ReminderSheet> {
                   ],
                   // Title
                   _sectionLabel('Title'),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   _inputField(_titleCtrl, 'Remind me to...'),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
                   // Category
                   _sectionLabel('Category'),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
                     children: ReminderCategory.values.map((c) => _categoryChip(c)).toList(),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
                   // When
                   _sectionLabel('When'),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   Row(
                     children: [
-                      Expanded(child: _pillButton(DateFormat('MMM d, yyyy').format(_date), Icons.calendar_today, _pickDate)),
+                      Expanded(child: _pillButton(DateFormat('EEE, MMM d').format(_date), _pickDate)),
                       const SizedBox(width: 10),
-                      Expanded(child: _pillButton(_time.format(context), Icons.access_time, _pickTime)),
+                      Expanded(child: _pillButton(_time.format(context), _pickTime)),
                     ],
                   ),
                   if (_hasConflict) ...[
                     const SizedBox(height: 10),
                     _conflictBanner(),
                   ],
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
                   // Sound
                   _sectionLabel('Sound'),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 10),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
-                    children: ['default', 'gentle', 'urgent', 'silent'].map((s) => _soundChip(s)).toList(),
+                    children: ['default', 'chime', 'bell', 'digital', 'gentle'].map((s) => _soundChip(s)).toList(),
                   ),
-                  const SizedBox(height: 20),
+                  const SizedBox(height: 24),
                   // Note
                   _sectionLabel('Note'),
-                  const SizedBox(height: 8),
-                  _inputField(_noteCtrl, 'Add a note...', multiline: true),
+                  const SizedBox(height: 10),
+                  _inputField(_noteCtrl, 'Add a detail (optional)', multiline: true),
                 ],
               ),
             ),
@@ -233,8 +235,8 @@ class _ReminderSheetState extends State<_ReminderSheet> {
   }
 
   Widget _sectionLabel(String text) => Text(
-    text,
-    style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: AppColors.textMuted),
+    text.toUpperCase(),
+    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textMuted, letterSpacing: 0.5),
   );
 
   Widget _circleButton(IconData icon, {VoidCallback? onTap, bool negative = false}) {
@@ -312,39 +314,38 @@ class _ReminderSheetState extends State<_ReminderSheet> {
         decoration: BoxDecoration(
           color: selected ? AppColors.primary : AppColors.surfaceElevated,
           borderRadius: BorderRadius.circular(999),
-          border: Border.all(color: selected ? AppColors.primary : AppColors.border),
+          border: Border.all(color: selected ? AppColors.primary : AppColors.border, width: 1.5),
         ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: selected ? AppColors.bg : AppColors.textSecondary,
-          ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.graphic_eq_rounded, size: 14, color: selected ? const Color(0xFF04211F) : AppColors.textMuted),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: selected ? const Color(0xFF04211F) : AppColors.textSecondary,
+              ),
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _pillButton(String text, IconData icon, VoidCallback onTap) {
+  Widget _pillButton(String text, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
         decoration: BoxDecoration(
           color: AppColors.surfaceElevated,
           borderRadius: BorderRadius.circular(14),
           border: Border.all(color: AppColors.border),
         ),
-        child: Row(
-          children: [
-            Icon(icon, size: 16, color: AppColors.textMuted),
-            const SizedBox(width: 8),
-            Expanded(
-              child: Text(text, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
-            ),
-          ],
-        ),
+        child: Text(text, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
       ),
     );
   }
@@ -428,7 +429,7 @@ class _ReminderSheetState extends State<_ReminderSheet> {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,
-              color: enabled ? AppColors.bg : AppColors.textMuted,
+            color: enabled ? const Color(0xFF04211F) : AppColors.textMuted,
             ),
           ),
         ),

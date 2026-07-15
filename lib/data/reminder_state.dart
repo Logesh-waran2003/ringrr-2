@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:ringrr/models/reminder.dart';
 import 'package:ringrr/data/reminder_repository.dart';
+import 'package:ringrr/services/alarm_service.dart';
 
 class ReminderState extends ChangeNotifier {
   final _repo = ReminderRepository();
@@ -22,11 +23,12 @@ class ReminderState extends ChangeNotifier {
 
   List<Reminder> get todayReminders {
     final now = DateTime.now();
-    final startOfDay = DateTime(now.year, now.month, now.day);
-    final endOfDay = startOfDay.add(const Duration(days: 1));
+    final endOfDay = DateTime(now.year, now.month, now.day + 1);
     return _reminders.where((r) =>
-        r.scheduledAt.isAfter(startOfDay) && r.scheduledAt.isBefore(endOfDay) ||
-        r.scheduledAt.isAtSameMomentAs(startOfDay)).toList();
+      r.status == ReminderStatus.pending &&
+      r.scheduledAt.isAfter(now) &&
+      r.scheduledAt.isBefore(endOfDay)
+    ).toList();
   }
 
   List<Reminder> get tomorrowReminders {
@@ -53,9 +55,11 @@ class ReminderState extends ChangeNotifier {
   }
 
   double get completionRate {
-    final total = pendingReminders.length + completedReminders.length;
+    final done = completedToday.length;
+    final pending = pendingReminders.length;
+    final total = done + pending;
     if (total == 0) return 0.0;
-    return completedReminders.length / total;
+    return done / total;
   }
 
   Future<void> load() async {
@@ -66,6 +70,7 @@ class ReminderState extends ChangeNotifier {
   Future<void> add(Reminder reminder) async {
     await _repo.save(reminder);
     _reminders.add(reminder);
+    AlarmService.scheduleAlarm(reminder);
     notifyListeners();
   }
 
@@ -73,12 +78,15 @@ class ReminderState extends ChangeNotifier {
     await _repo.update(reminder);
     final idx = _reminders.indexWhere((r) => r.id == reminder.id);
     if (idx != -1) _reminders[idx] = reminder;
+    AlarmService.cancelAlarm(reminder.id);
+    AlarmService.scheduleAlarm(reminder);
     notifyListeners();
   }
 
   Future<void> delete(String id) async {
     await _repo.delete(id);
     _reminders.removeWhere((r) => r.id == id);
+    AlarmService.cancelAlarm(id);
     notifyListeners();
   }
 
@@ -91,6 +99,7 @@ class ReminderState extends ChangeNotifier {
     );
     await _repo.update(updated);
     _reminders[idx] = updated;
+    AlarmService.cancelAlarm(id);
     notifyListeners();
   }
 
@@ -100,6 +109,7 @@ class ReminderState extends ChangeNotifier {
     final updated = _reminders[idx].copyWith(status: ReminderStatus.dismissed);
     await _repo.update(updated);
     _reminders[idx] = updated;
+    AlarmService.cancelAlarm(id);
     notifyListeners();
   }
 }

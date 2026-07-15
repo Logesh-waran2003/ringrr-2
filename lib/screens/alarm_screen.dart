@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 import 'package:intl/intl.dart';
 import 'package:ringrr/data/reminder_provider.dart';
 import 'package:ringrr/models/reminder.dart';
@@ -24,6 +25,11 @@ class _AlarmScreenState extends State<AlarmScreen>
       vsync: this,
       duration: const Duration(milliseconds: 1800),
     )..repeat();
+
+    Future.delayed(const Duration(milliseconds: 500), () {
+      final tts = FlutterTts();
+      tts.speak('Reminder: ${widget.reminder.title}. ${widget.reminder.description}');
+    });
   }
 
   @override

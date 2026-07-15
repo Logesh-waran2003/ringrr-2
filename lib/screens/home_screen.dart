@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:ringrr/data/reminder_provider.dart';
 import 'package:ringrr/models/reminder.dart';
+import 'package:ringrr/screens/create_reminder_sheet.dart';
 import 'package:ringrr/theme/app_theme.dart';
 import 'package:ringrr/widgets/progress_ring.dart';
 import 'package:ringrr/widgets/reminder_card.dart';
@@ -260,18 +261,21 @@ class _EmptyState extends StatelessWidget {
               style: TextStyle(fontSize: 13, color: AppColors.textMuted),
             ),
             const SizedBox(height: 20),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: const Text(
-                'Add a reminder',
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.bg,
+            GestureDetector(
+              onTap: () => showCreateReminderSheet(context),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppColors.primary,
+                  borderRadius: BorderRadius.circular(999),
+                ),
+                child: const Text(
+                  'Add a reminder',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.bg,
+                  ),
                 ),
               ),
             ),
