@@ -1,6 +1,10 @@
 package com.logesh.ringrr
 
+import android.app.AlarmManager
+import android.app.PendingIntent
+import android.content.Context
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
@@ -26,6 +30,19 @@ class MainActivity : FlutterActivity() {
                     AlarmForegroundService.stop(applicationContext)
                     result.success(null)
                 }
+                "scheduleNativeAlarm" -> {
+                    val id = call.argument<Int>("id") ?: 0
+                    val timeMs = call.argument<Long>("timeMs") ?: 0L
+                    val reminderId = call.argument<String>("reminderId") ?: ""
+                    val title = call.argument<String>("title") ?: "Reminder"
+                    scheduleAlarm(id, timeMs, reminderId, title)
+                    result.success(null)
+                }
+                "cancelNativeAlarm" -> {
+                    val id = call.argument<Int>("id") ?: 0
+                    cancelAlarm(id)
+                    result.success(null)
+                }
                 "getPendingAlarmId" -> {
                     result.success(pendingAlarmReminderId)
                     pendingAlarmReminderId = null
@@ -33,6 +50,51 @@ class MainActivity : FlutterActivity() {
                 else -> result.notImplemented()
             }
         }
+    }
+
+    private fun scheduleAlarm(id: Int, timeMs: Long, reminderId: String, title: String) {
+        // Save metadata so the receiver can look it up
+        val prefs = getSharedPreferences("alarm_metadata", Context.MODE_PRIVATE)
+        prefs.edit()
+            .putString("alarm_${id}_id", reminderId)
+            .putString("alarm_${id}_title", title)
+            .apply()
+
+        val intent = Intent(this, AlarmReceiver::class.java).apply {
+            putExtra("alarm_id", id)
+        }
+        val pendingIntent = PendingIntent.getBroadcast(
+            this, id, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            if (alarmManager.canScheduleExactAlarms()) {
+                alarmManager.setAlarmClock(
+                    AlarmManager.AlarmClockInfo(timeMs, pendingIntent),
+                    pendingIntent
+                )
+            } else {
+                // Fallback: inexact but will still fire
+                alarmManager.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, timeMs, pendingIntent)
+            }
+        } else {
+            alarmManager.setAlarmClock(
+                AlarmManager.AlarmClockInfo(timeMs, pendingIntent),
+                pendingIntent
+            )
+        }
+    }
+
+    private fun cancelAlarm(id: Int) {
+        val intent = Intent(this, AlarmReceiver::class.java)
+        val pendingIntent = PendingIntent.getBroadcast(
+            this, id, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
+        alarmManager.cancel(pendingIntent)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,7 +111,6 @@ class MainActivity : FlutterActivity() {
         val reminderId = intent?.getStringExtra("alarm_reminder_id")
         if (reminderId != null && reminderId.isNotEmpty()) {
             pendingAlarmReminderId = reminderId
-            // If Flutter engine is ready, invoke immediately
             flutterEngine?.dartExecutor?.binaryMessenger?.let { messenger ->
                 MethodChannel(messenger, CHANNEL).invokeMethod("alarmFired", reminderId)
             }
