@@ -5,7 +5,7 @@ class AppColors {
   static const surface = Color(0xFF111318);       // darker cards
   static const surfaceElevated = Color(0xFF181B24); // darker sheets
   static const border = Color(0xFF1E2130);        // subtler
-  static const primary = Color(0xFF00C9C8);
+  static const primary = Color(0xFFE5252A);
   static const positive = Color(0xFF10B981);
   static const negative = Color(0xFFF97316);
   static const textPrimary = Color(0xFFFFFFFF);

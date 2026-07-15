@@ -3,6 +3,7 @@ import 'package:flutter_tts/flutter_tts.dart';
 import 'package:intl/intl.dart';
 import 'package:ringrr/data/reminder_provider.dart';
 import 'package:ringrr/models/reminder.dart';
+import 'package:ringrr/services/alarm_ringer.dart';
 import 'package:ringrr/theme/app_theme.dart';
 import 'package:ringrr/widgets/category_chip.dart';
 
@@ -26,6 +27,8 @@ class _AlarmScreenState extends State<AlarmScreen>
       duration: const Duration(milliseconds: 1800),
     )..repeat();
 
+    AlarmRinger.start();
+
     Future.delayed(const Duration(milliseconds: 500), () {
       final tts = FlutterTts();
       tts.speak('Reminder: ${widget.reminder.title}. ${widget.reminder.description}');
@@ -34,11 +37,13 @@ class _AlarmScreenState extends State<AlarmScreen>
 
   @override
   void dispose() {
+    AlarmRinger.stop();
     _pulseController.dispose();
     super.dispose();
   }
 
   void _snooze() {
+    AlarmRinger.stop();
     final state = ReminderProvider.of(context);
     state.update(widget.reminder.copyWith(
       scheduledAt: DateTime.now().add(const Duration(minutes: 5)),
@@ -47,6 +52,7 @@ class _AlarmScreenState extends State<AlarmScreen>
   }
 
   void _dismiss() {
+    AlarmRinger.stop();
     final state = ReminderProvider.of(context);
     state.dismiss(widget.reminder.id);
     Navigator.of(context).pop();

@@ -319,14 +319,14 @@ class _ReminderSheetState extends State<_ReminderSheet> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.graphic_eq_rounded, size: 14, color: selected ? const Color(0xFF04211F) : AppColors.textMuted),
+            Icon(Icons.graphic_eq_rounded, size: 14, color: selected ? const Color(0xFF1A0505) : AppColors.textMuted),
             const SizedBox(width: 5),
             Text(
               label,
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: selected ? const Color(0xFF04211F) : AppColors.textSecondary,
+                color: selected ? const Color(0xFF1A0505) : AppColors.textSecondary,
               ),
             ),
           ],
@@ -429,7 +429,7 @@ class _ReminderSheetState extends State<_ReminderSheet> {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,
-            color: enabled ? const Color(0xFF04211F) : AppColors.textMuted,
+            color: enabled ? const Color(0xFF1A0505) : AppColors.textMuted,
             ),
           ),
         ),
