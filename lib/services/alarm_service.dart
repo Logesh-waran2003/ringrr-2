@@ -33,12 +33,22 @@ class AlarmService {
       importance: Importance.max,
     ));
 
-    // Android 13+ requires runtime permission for notifications
-    await android?.requestNotificationsPermission();
-    // Android 12+ requires explicit permission for exact alarms
-    await android?.requestExactAlarmsPermission();
-    // Android 14+ requires permission for full-screen intents
-    await android?.requestFullScreenIntentPermission();
+    if (android != null) {
+      // Android 13+ requires runtime permission for notifications
+      final notifGranted = await android.requestNotificationsPermission();
+      debugPrint('[AlarmService] Notification permission: $notifGranted');
+
+      // Android 12+ requires explicit permission for exact alarms
+      // This opens Settings if not already granted
+      final exactGranted = await android.canScheduleExactNotifications();
+      debugPrint('[AlarmService] Exact alarm permission: $exactGranted');
+      if (exactGranted != true) {
+        await android.requestExactAlarmsPermission();
+      }
+
+      // Android 14+ requires permission for full-screen intents
+      await android.requestFullScreenIntentPermission();
+    }
   }
 
   static Future<void> scheduleAlarm(Reminder reminder) async {
@@ -51,6 +61,8 @@ class AlarmService {
       importance: Importance.max,
       priority: Priority.high,
       fullScreenIntent: true,
+      category: AndroidNotificationCategory.alarm,
+      audioAttributesUsage: AudioAttributesUsage.alarm,
     );
     const details = NotificationDetails(android: androidDetails);
 

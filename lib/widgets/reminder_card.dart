@@ -81,7 +81,22 @@ class _ReminderCardState extends State<ReminderCard> with SingleTickerProviderSt
             child: Dismissible(
               key: Key(widget.reminder.id),
               direction: DismissDirection.endToStart,
-              onDismissed: (_) => state.delete(widget.reminder.id),
+              onDismissed: (_) {
+                final deletedReminder = widget.reminder;
+                state.delete(deletedReminder.id);
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text('"${deletedReminder.title}" deleted'),
+                    duration: const Duration(seconds: 4),
+                    backgroundColor: const Color(0xFF1A1A1E),
+                    action: SnackBarAction(
+                      label: 'Undo',
+                      textColor: AppColors.primary,
+                      onPressed: () => state.add(deletedReminder),
+                    ),
+                  ),
+                );
+              },
               background: Container(
                 alignment: Alignment.centerRight,
                 padding: const EdgeInsets.only(right: 20),
@@ -163,7 +178,7 @@ class _ReminderCardState extends State<ReminderCard> with SingleTickerProviderSt
                         ),
                       ),
                       const SizedBox(width: 12),
-                      // Complete button with green flash
+                      // Complete button with red flash
                       GestureDetector(
                         onTap: () {
                           setState(() => _completing = true);
@@ -179,9 +194,9 @@ class _ReminderCardState extends State<ReminderCard> with SingleTickerProviderSt
                           height: 32,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: _completing ? AppColors.positive : Colors.transparent,
+                            color: _completing ? AppColors.primary : Colors.transparent,
                             border: Border.all(
-                              color: _completing ? AppColors.positive : AppColors.border,
+                              color: _completing ? AppColors.primary : AppColors.border,
                               width: 1.5,
                             ),
                           ),

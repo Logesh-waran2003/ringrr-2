@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:ringrr/data/reminder_provider.dart';
 import 'package:ringrr/data/reminder_state.dart';
 import 'package:ringrr/models/reminder.dart';
+import 'package:ringrr/screens/alarm_screen.dart';
 import 'package:ringrr/screens/create_reminder_sheet.dart';
 import 'package:ringrr/theme/app_theme.dart';
 import 'package:ringrr/widgets/analog_clock.dart';
@@ -15,14 +16,39 @@ Reminder? _nextReminder(ReminderState state) {
   return all.first;
 }
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  DateTime _selectedDate = DateTime.now();
+
+  DateTime get _today {
+    final now = DateTime.now();
+    return DateTime(now.year, now.month, now.day);
+  }
+
+  DateTime get _selectedDay => DateTime(_selectedDate.year, _selectedDate.month, _selectedDate.day);
 
   String get _greeting {
     final hour = DateTime.now().hour;
     if (hour < 12) return 'Good morning';
     if (hour < 17) return 'Good afternoon';
     return 'Good evening';
+  }
+
+  List<DateTime> _remindersForDate(DateTime date) {
+    final state = ReminderProvider.of(context);
+    final startOfDay = DateTime(date.year, date.month, date.day);
+    final endOfDay = startOfDay.add(const Duration(days: 1));
+    return state.pendingReminders
+        .where((r) => !r.scheduledAt.isBefore(startOfDay) && r.scheduledAt.isBefore(endOfDay))
+        .map((r) => r.scheduledAt)
+        .take(8)
+        .toList();
   }
 
   @override
@@ -74,14 +100,36 @@ class HomeScreen extends StatelessWidget {
           ],
           const SizedBox(height: 32),
 
-          // Analog clock hero
-          Center(child: AnalogClock(
-            size: 140,
-            reminderTimes: [
-              ...state.todayReminders.map((r) => r.scheduledAt),
-              ...state.tomorrowReminders.map((r) => r.scheduledAt),
-            ].take(6).toList(), // max 6 dots to avoid clutter
-          )),
+          // Analog clock hero with swipe-to-change-date
+          GestureDetector(
+            onHorizontalDragEnd: (details) {
+              if (details.primaryVelocity == null) return;
+              setState(() {
+                if (details.primaryVelocity! < -100) {
+                  _selectedDate = _selectedDate.add(const Duration(days: 1));
+                } else if (details.primaryVelocity! > 100) {
+                  _selectedDate = _selectedDate.subtract(const Duration(days: 1));
+                }
+              });
+            },
+            child: Column(
+              children: [
+                Center(child: AnalogClock(
+                  size: 140,
+                  reminderTimes: _remindersForDate(_selectedDate),
+                )),
+                if (_selectedDay != _today) ...[
+                  const SizedBox(height: 8),
+                  Center(
+                    child: Text(
+                      DateFormat('EEE, MMM d').format(_selectedDate),
+                      style: const TextStyle(fontSize: 12, color: AppColors.textMuted),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
           const SizedBox(height: 16),
           // Next alarm countdown
           if (_nextReminder(state) != null) ...[
@@ -240,6 +288,7 @@ class _Section extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           ...reminders.asMap().entries.map((entry) => ReminderCard(
+            key: ValueKey(entry.value.id),
             reminder: entry.value,
             isOverdue: isOverdue,
             showDate: showDate,
@@ -338,6 +387,31 @@ class _NextAlarmLabel extends StatelessWidget {
             fontSize: 14,
             fontWeight: FontWeight.w700,
             color: AppColors.primary,
+          ),
+        ),
+        const SizedBox(width: 10),
+        // ponytail: test button to verify alarm screen + ringer works end-to-end
+        GestureDetector(
+          onTap: () {
+            final testReminder = Reminder(
+              id: 'test_${DateTime.now().millisecondsSinceEpoch}',
+              title: 'Test Alarm',
+              description: 'Verifying alarm works',
+              category: ReminderCategory.personal,
+              scheduledAt: DateTime.now(),
+              createdAt: DateTime.now(),
+            );
+            Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => AlarmScreen(reminder: testReminder)),
+            );
+          },
+          child: Container(
+            padding: const EdgeInsets.all(6),
+            decoration: BoxDecoration(
+              color: AppColors.border,
+              shape: BoxShape.circle,
+            ),
+            child: const Icon(Icons.play_arrow_rounded, size: 14, color: AppColors.textMuted),
           ),
         ),
       ],
