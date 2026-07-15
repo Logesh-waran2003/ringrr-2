@@ -4,12 +4,11 @@ import 'package:ringrr/data/reminder_provider.dart';
 import 'package:ringrr/models/reminder.dart';
 import 'package:ringrr/screens/create_reminder_sheet.dart';
 import 'package:ringrr/theme/app_theme.dart';
-import 'package:ringrr/widgets/category_chip.dart';
 
 class ReminderCard extends StatelessWidget {
   final Reminder reminder;
   final bool isOverdue;
-  final bool showDate; // show date label for tomorrow/upcoming
+  final bool showDate;
 
   const ReminderCard({
     super.key,
@@ -18,64 +17,58 @@ class ReminderCard extends StatelessWidget {
     this.showDate = false,
   });
 
+  static const _categoryAbbr = {
+    ReminderCategory.personal: 'PER',
+    ReminderCategory.work: 'WRK',
+    ReminderCategory.health: 'HTH',
+    ReminderCategory.social: 'SOC',
+  };
+
   @override
   Widget build(BuildContext context) {
     final state = ReminderProvider.of(context);
+    final timeStr = DateFormat('h:mm a').format(reminder.scheduledAt);
 
     return Dismissible(
       key: Key(reminder.id),
       direction: DismissDirection.endToStart,
-      dismissThresholds: const {DismissDirection.endToStart: 0.3},
       onDismissed: (_) => state.delete(reminder.id),
       background: Container(
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 20),
-        decoration: BoxDecoration(
-          color: AppColors.negative,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: const Icon(Icons.delete_outline, color: Colors.white),
+        color: AppColors.primary.withValues(alpha: 0.15),
+        child: const Icon(Icons.delete_outline, color: AppColors.primary, size: 20),
       ),
       child: GestureDetector(
         onTap: () => showEditReminderSheet(context, reminder),
+        behavior: HitTestBehavior.opaque,
         child: Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            gradient: const LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [Color(0xFF151821), Color(0xFF0E1017)],
-            ),
-            borderRadius: BorderRadius.circular(20),
+          padding: const EdgeInsets.symmetric(vertical: 14),
+          decoration: const BoxDecoration(
+            border: Border(bottom: BorderSide(color: AppColors.border, width: 0.5)),
           ),
           child: Row(
             children: [
-              // Time column
+              // Time
               SizedBox(
-                width: 60,
+                width: 64,
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      DateFormat('h:mm a').format(reminder.scheduledAt),
+                      timeStr,
                       style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: isOverdue
-                            ? AppColors.negative
-                            : AppColors.textSecondary,
+                        fontFamily: AppTheme.displayFont,
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                        color: isOverdue ? AppColors.primary : AppColors.textSecondary,
                       ),
                     ),
-                    if (showDate) ...[
-                      const SizedBox(height: 2),
+                    if (showDate)
                       Text(
-                        DateFormat('MMM d').format(reminder.scheduledAt),
-                        style: const TextStyle(
-                          fontSize: 10.5,
-                          color: AppColors.textMuted,
-                        ),
+                        DateFormat('EEE, MMM d').format(reminder.scheduledAt),
+                        style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
                       ),
-                    ],
                   ],
                 ),
               ),
@@ -87,29 +80,37 @@ class ReminderCard extends StatelessWidget {
                   children: [
                     Text(
                       reminder.title,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
+                        fontFamily: AppTheme.displayFont,
                         fontSize: 15,
                         fontWeight: FontWeight.w600,
                         color: AppColors.textPrimary,
                       ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                     if (reminder.description.isNotEmpty) ...[
-                      const SizedBox(height: 3),
+                      const SizedBox(height: 2),
                       Text(
                         reminder.description,
+                        style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          color: AppColors.textMuted,
-                        ),
                       ),
                     ],
-                    const SizedBox(height: 6),
-                    CategoryChip(category: reminder.category),
                   ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              // Category abbreviation — monospace 3-letter label
+              Text(
+                _categoryAbbr[reminder.category] ?? '',
+                style: const TextStyle(
+                  fontSize: 9,
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textMuted,
+                  letterSpacing: 0.8,
+                  fontFamily: 'monospace',
                 ),
               ),
               const SizedBox(width: 12),
@@ -117,17 +118,13 @@ class ReminderCard extends StatelessWidget {
               GestureDetector(
                 onTap: () => state.markComplete(reminder.id),
                 child: Container(
-                  width: 44,
-                  height: 44,
-                  decoration: const BoxDecoration(
+                  width: 32,
+                  height: 32,
+                  decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Color(0xFF1A1D28),
+                    border: Border.all(color: AppColors.border, width: 1.5),
                   ),
-                  child: const Icon(
-                    Icons.check,
-                    color: Color(0xFF5A5D72),
-                    size: 20,
-                  ),
+                  child: const Icon(Icons.check, size: 14, color: AppColors.textMuted),
                 ),
               ),
             ],

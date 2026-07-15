@@ -1,26 +1,30 @@
 import 'package:flutter/material.dart';
 
 class AppColors {
-  static const bg = Color(0xFF050507);           // Leica void black
-  static const surface = Color(0xFF111318);       // darker cards
-  static const surfaceElevated = Color(0xFF181B24); // darker sheets
-  static const border = Color(0xFF1E2130);        // subtler
+  static const bg = Color(0xFF000000);
+  static const surface = Color(0xFF0A0A0C);
+  static const surfaceElevated = Color(0xFF111114);
+  static const border = Color(0xFF1A1A1E);
   static const primary = Color(0xFFE5252A);
-  static const positive = Color(0xFF10B981);
-  static const negative = Color(0xFFF97316);
+  static const positive = Color(0xFF2ECC71);
+  static const negative = Color(0xFFE5252A); // same as primary — red is the urgency color
   static const textPrimary = Color(0xFFFFFFFF);
-  static const textSecondary = Color(0xFFC7C9DA);
-  static const textMuted = Color(0xFF9496AC);
-  static const personal = Color(0xFF8B5CF6);
-  static const work = Color(0xFF3B82F6);
-  static const health = Color(0xFF10B981);
-  static const social = Color(0xFFF59E0B);
+  static const textSecondary = Color(0xFFB0B3BE);
+  static const textMuted = Color(0xFF5C5F6E);
+  // Category colors removed — categories are text-only now
+  static const personal = Color(0xFF5C5F6E);
+  static const work = Color(0xFF5C5F6E);
+  static const health = Color(0xFF5C5F6E);
+  static const social = Color(0xFF5C5F6E);
 }
 
 class AppTheme {
+  static const displayFont = 'InstrumentSans';
+
   static ThemeData get dark => ThemeData(
     brightness: Brightness.dark,
     scaffoldBackgroundColor: AppColors.bg,
+    fontFamily: '.SF UI Text', // system sans
     colorScheme: const ColorScheme.dark(
       primary: AppColors.primary,
       surface: AppColors.surface,
@@ -29,22 +33,17 @@ class AppTheme {
     appBarTheme: const AppBarTheme(
       backgroundColor: AppColors.bg,
       elevation: 0,
-      iconTheme: IconThemeData(color: AppColors.textPrimary),
-      titleTextStyle: TextStyle(
-        color: AppColors.textPrimary,
-        fontSize: 18,
-        fontWeight: FontWeight.w600,
-        letterSpacing: -0.3,
-      ),
     ),
     textTheme: const TextTheme(
-      displayLarge: TextStyle(color: AppColors.textPrimary, fontSize: 32, fontWeight: FontWeight.w700, letterSpacing: -0.5),
-      titleLarge: TextStyle(color: AppColors.textPrimary, fontSize: 20, fontWeight: FontWeight.w600),
-      titleMedium: TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.w600),
+      displayLarge: TextStyle(fontFamily: displayFont, color: AppColors.textPrimary, fontSize: 72, fontWeight: FontWeight.w700, height: 1),
+      headlineLarge: TextStyle(fontFamily: displayFont, color: AppColors.textPrimary, fontSize: 28, fontWeight: FontWeight.w700, letterSpacing: -0.5),
+      headlineMedium: TextStyle(fontFamily: displayFont, color: AppColors.textPrimary, fontSize: 22, fontWeight: FontWeight.w600),
+      titleLarge: TextStyle(fontFamily: displayFont, color: AppColors.textPrimary, fontSize: 17, fontWeight: FontWeight.w600),
+      titleMedium: TextStyle(fontFamily: displayFont, color: AppColors.textPrimary, fontSize: 15, fontWeight: FontWeight.w600),
       bodyLarge: TextStyle(color: AppColors.textPrimary, fontSize: 15),
       bodyMedium: TextStyle(color: AppColors.textSecondary, fontSize: 13),
       bodySmall: TextStyle(color: AppColors.textMuted, fontSize: 11),
-      labelSmall: TextStyle(color: AppColors.textMuted, fontSize: 10, letterSpacing: 1.2),
+      labelSmall: TextStyle(color: AppColors.textMuted, fontSize: 10, fontWeight: FontWeight.w600, letterSpacing: 1.5),
     ),
   );
 }

@@ -142,21 +142,33 @@ class _ReminderSheetState extends State<_ReminderSheet> {
     return Container(
       height: MediaQuery.of(context).size.height * 0.9,
       decoration: const BoxDecoration(
-        color: AppColors.surface,
+        color: Color(0xFF0A0A0C),
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
       child: Column(
         children: [
+          // Drag handle
+          Center(
+            child: Container(
+              margin: const EdgeInsets.only(top: 12, bottom: 8),
+              width: 36,
+              height: 4,
+              decoration: BoxDecoration(
+                color: AppColors.border,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+          ),
           // Header
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
             child: Row(
               children: [
                 _circleButton(Icons.close, onTap: () => Navigator.pop(context)),
                 const Spacer(),
                 Text(
                   _isEdit ? 'Edit reminder' : 'New reminder',
-                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: AppColors.textPrimary, fontFamily: AppTheme.displayFont),
                 ),
                 const Spacer(),
                 if (_isEdit)
@@ -236,7 +248,7 @@ class _ReminderSheetState extends State<_ReminderSheet> {
 
   Widget _sectionLabel(String text) => Text(
     text.toUpperCase(),
-    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textMuted, letterSpacing: 0.5),
+    style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: AppColors.textMuted, letterSpacing: 1.5),
   );
 
   Widget _circleButton(IconData icon, {VoidCallback? onTap, bool negative = false}) {
@@ -260,7 +272,7 @@ class _ReminderSheetState extends State<_ReminderSheet> {
       controller: ctrl,
       maxLines: multiline ? null : 1,
       minLines: multiline ? 3 : 1,
-      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+      style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary, fontFamily: AppTheme.displayFont),
       decoration: InputDecoration(
         hintText: hint,
         hintStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textMuted),
@@ -297,7 +309,7 @@ class _ReminderSheetState extends State<_ReminderSheet> {
           children: [
             Container(width: 7, height: 7, decoration: BoxDecoration(color: color, shape: BoxShape.circle)),
             const SizedBox(width: 6),
-            Text(c.label, style: TextStyle(color: color, fontSize: 13, fontWeight: FontWeight.w600)),
+            Text(c.label, style: TextStyle(color: selected ? color : AppColors.textSecondary, fontSize: 13, fontWeight: FontWeight.w600)),
           ],
         ),
       ),
@@ -319,14 +331,14 @@ class _ReminderSheetState extends State<_ReminderSheet> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.graphic_eq_rounded, size: 14, color: selected ? const Color(0xFF1A0505) : AppColors.textMuted),
+            Icon(Icons.graphic_eq_rounded, size: 14, color: selected ? Colors.white : AppColors.textMuted),
             const SizedBox(width: 5),
             Text(
               label,
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
-                color: selected ? const Color(0xFF1A0505) : AppColors.textSecondary,
+                color: selected ? Colors.white : AppColors.textSecondary,
               ),
             ),
           ],
@@ -429,7 +441,7 @@ class _ReminderSheetState extends State<_ReminderSheet> {
             style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.w700,
-            color: enabled ? const Color(0xFF1A0505) : AppColors.textMuted,
+            color: enabled ? Colors.white : AppColors.textMuted,
             ),
           ),
         ),

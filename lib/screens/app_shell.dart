@@ -1,5 +1,3 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:ringrr/screens/create_reminder_sheet.dart';
 import 'package:ringrr/screens/history_screen.dart';
@@ -27,51 +25,45 @@ class _AppShellState extends State<AppShell> {
           HistoryScreen(),
         ],
       ),
-      bottomNavigationBar: ClipRect(
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-          child: Container(
-            decoration: BoxDecoration(
-              color: AppColors.surface.withValues(alpha: 0.85),
-            ),
-            child: SafeArea(
-              child: SizedBox(
-                height: 60,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    _NavTab(
-                      icon: Icons.home_rounded,
-                      selected: _currentIndex == 0,
-                      onTap: () => setState(() => _currentIndex = 0),
-                    ),
-                    const SizedBox(width: 56), // space for FAB
-                    _NavTab(
-                      icon: Icons.history_rounded,
-                      selected: _currentIndex == 1,
-                      onTap: () => setState(() => _currentIndex = 1),
-                    ),
-                  ],
+      bottomNavigationBar: Container(
+        decoration: const BoxDecoration(
+          color: AppColors.bg,
+          border: Border(top: BorderSide(color: AppColors.border, width: 0.5)),
+        ),
+        child: SafeArea(
+          child: SizedBox(
+            height: 56,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                _NavTab(
+                  icon: Icons.access_time_rounded,
+                  selected: _currentIndex == 0,
+                  onTap: () => setState(() => _currentIndex = 0),
                 ),
-              ),
+                // FAB
+                GestureDetector(
+                  onTap: () => showCreateReminderSheet(context),
+                  child: Container(
+                    width: 48,
+                    height: 48,
+                    decoration: const BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.add, color: Colors.white, size: 24),
+                  ),
+                ),
+                _NavTab(
+                  icon: Icons.check_circle_outline_rounded,
+                  selected: _currentIndex == 1,
+                  onTap: () => setState(() => _currentIndex = 1),
+                ),
+              ],
             ),
           ),
         ),
       ),
-      floatingActionButton: Container(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          border: Border.all(color: AppColors.bg, width: 5),
-        ),
-        child: FloatingActionButton(
-          onPressed: () => showCreateReminderSheet(context),
-          backgroundColor: AppColors.primary,
-          elevation: 0,
-          shape: const CircleBorder(),
-          child: const Icon(Icons.add, color: AppColors.bg, size: 28),
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
   }
 }
@@ -81,11 +73,7 @@ class _NavTab extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
 
-  const _NavTab({
-    required this.icon,
-    required this.selected,
-    required this.onTap,
-  });
+  const _NavTab({required this.icon, required this.selected, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -93,11 +81,12 @@ class _NavTab extends StatelessWidget {
       onTap: onTap,
       behavior: HitTestBehavior.opaque,
       child: SizedBox(
-        width: 60,
+        width: 56,
+        height: 56,
         child: Icon(
           icon,
-          color: selected ? AppColors.primary : AppColors.textMuted,
-          size: 26,
+          color: selected ? AppColors.textPrimary : AppColors.textMuted,
+          size: 24,
         ),
       ),
     );
