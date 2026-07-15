@@ -13,17 +13,17 @@ class AppShell extends StatefulWidget {
 
 class _AppShellState extends State<AppShell> {
   int _currentIndex = 0;
+  double _fabScale = 1.0;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.bg,
-      body: IndexedStack(
-        index: _currentIndex,
-        children: const [
-          HomeScreen(),
-          HistoryScreen(),
-        ],
+      body: AnimatedSwitcher(
+        duration: const Duration(milliseconds: 150),
+        child: _currentIndex == 0
+            ? const HomeScreen(key: ValueKey('home'))
+            : const HistoryScreen(key: ValueKey('history')),
       ),
       bottomNavigationBar: Container(
         decoration: const BoxDecoration(
@@ -41,17 +41,27 @@ class _AppShellState extends State<AppShell> {
                   selected: _currentIndex == 0,
                   onTap: () => setState(() => _currentIndex = 0),
                 ),
-                // FAB
+                // FAB with press state — scale 0.92 per Emil Kowalski rules (deeper for primary action)
                 GestureDetector(
-                  onTap: () => showCreateReminderSheet(context),
-                  child: Container(
-                    width: 48,
-                    height: 48,
-                    decoration: const BoxDecoration(
-                      color: AppColors.primary,
-                      shape: BoxShape.circle,
+                  onTapDown: (_) => setState(() => _fabScale = 0.92),
+                  onTapUp: (_) {
+                    setState(() => _fabScale = 1.0);
+                    showCreateReminderSheet(context);
+                  },
+                  onTapCancel: () => setState(() => _fabScale = 1.0),
+                  child: AnimatedScale(
+                    scale: _fabScale,
+                    duration: const Duration(milliseconds: 100),
+                    curve: Curves.easeOut,
+                    child: Container(
+                      width: 48,
+                      height: 48,
+                      decoration: const BoxDecoration(
+                        color: AppColors.primary,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.add, color: Colors.white, size: 24),
                     ),
-                    child: const Icon(Icons.add, color: Colors.white, size: 24),
                   ),
                 ),
                 _NavTab(

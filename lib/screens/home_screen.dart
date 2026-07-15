@@ -75,7 +75,13 @@ class HomeScreen extends StatelessWidget {
           const SizedBox(height: 32),
 
           // Analog clock hero
-          const Center(child: AnalogClock(size: 140)),
+          Center(child: AnalogClock(
+            size: 140,
+            reminderTimes: [
+              ...state.todayReminders.map((r) => r.scheduledAt),
+              ...state.tomorrowReminders.map((r) => r.scheduledAt),
+            ].take(6).toList(), // max 6 dots to avoid clutter
+          )),
           const SizedBox(height: 16),
           // Next alarm countdown
           if (_nextReminder(state) != null) ...[

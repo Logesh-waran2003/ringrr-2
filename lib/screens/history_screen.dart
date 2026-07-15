@@ -91,7 +91,7 @@ class _HistoryStat extends StatelessWidget {
             fontFamily: AppTheme.displayFont,
             fontSize: 24,
             fontWeight: FontWeight.w700,
-            color: isHighlight ? AppColors.positive : AppColors.textPrimary,
+            color: AppColors.textPrimary,
           ),
         ),
         const SizedBox(height: 2),
@@ -157,17 +157,15 @@ class _HistoryRow extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
               decoration: BoxDecoration(
-                color: isDone
-                    ? AppColors.positive.withValues(alpha: 0.12)
-                    : AppColors.textMuted.withValues(alpha: 0.12),
+                color: AppColors.textMuted.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(4),
               ),
               child: Text(
                 isDone ? 'Done' : 'Skipped',
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
-                  color: isDone ? AppColors.positive : AppColors.textMuted,
+                  color: AppColors.textSecondary,
                 ),
               ),
             ),

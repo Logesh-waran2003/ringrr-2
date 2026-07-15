@@ -5,7 +5,8 @@ import 'package:ringrr/theme/app_theme.dart';
 
 class AnalogClock extends StatefulWidget {
   final double size;
-  const AnalogClock({super.key, this.size = 140});
+  final List<DateTime> reminderTimes;
+  const AnalogClock({super.key, this.size = 140, this.reminderTimes = const []});
 
   @override
   State<AnalogClock> createState() => _AnalogClockState();
@@ -50,6 +51,7 @@ class _AnalogClockState extends State<AnalogClock>
               parent: _secondCtrl,
               curve: Curves.easeOutCubic,
             ).value,
+            reminderTimes: widget.reminderTimes,
           ),
         );
       },
@@ -60,8 +62,9 @@ class _AnalogClockState extends State<AnalogClock>
 class _ClockPainter extends CustomPainter {
   final DateTime time;
   final double secondAnimation;
+  final List<DateTime> reminderTimes;
 
-  _ClockPainter({required this.time, required this.secondAnimation});
+  _ClockPainter({required this.time, required this.secondAnimation, this.reminderTimes = const []});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -108,6 +111,19 @@ class _ClockPainter extends CustomPainter {
     // Second hand — smooth tick via easeOutCubic animation
     final secondAngle = (time.second) * 6 * pi / 180 - pi / 2;
     _drawHand(canvas, center, secondAngle, radius * 0.62, 1, AppColors.primary);
+
+    // Reminder position dots on rim
+    for (final time in reminderTimes) {
+      final hour = time.hour % 12;
+      final minute = time.minute;
+      final angle = ((hour + minute / 60.0) * 30.0) * pi / 180 - pi / 2;
+      final dotRadius = 3.5;
+      final dotPosition = Offset(
+        center.dx + (radius - 18) * cos(angle),
+        center.dy + (radius - 18) * sin(angle),
+      );
+      canvas.drawCircle(dotPosition, dotRadius, Paint()..color = AppColors.primary.withValues(alpha: 0.7));
+    }
 
     // Center dot
     canvas.drawCircle(center, 3, Paint()..color = AppColors.primary);

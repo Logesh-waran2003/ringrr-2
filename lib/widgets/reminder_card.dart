@@ -69,13 +69,11 @@ class _ReminderCardState extends State<ReminderCard> with SingleTickerProviderSt
       opacity: _fadeIn,
       child: SlideTransition(
         position: _slideIn,
-        child: GestureDetector(
-          onTapDown: (_) => setState(() => _pressScale = 0.97),
-          onTapUp: (_) {
-            setState(() => _pressScale = 1.0);
-            showEditReminderSheet(context, widget.reminder);
-          },
-          onTapCancel: () => setState(() => _pressScale = 1.0),
+        // ponytail: Listener doesn't compete in gesture arena, so press visual works alongside Dismissible drag
+        child: Listener(
+          onPointerDown: (_) => setState(() => _pressScale = 0.97),
+          onPointerUp: (_) => setState(() => _pressScale = 1.0),
+          onPointerCancel: (_) => setState(() => _pressScale = 1.0),
           child: AnimatedScale(
             scale: _pressScale,
             duration: const Duration(milliseconds: 100),
@@ -90,108 +88,112 @@ class _ReminderCardState extends State<ReminderCard> with SingleTickerProviderSt
                 color: AppColors.primary.withValues(alpha: 0.15),
                 child: const Icon(Icons.delete_outline, color: AppColors.primary, size: 20),
               ),
-              child: Container(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                decoration: const BoxDecoration(
-                  border: Border(bottom: BorderSide(color: AppColors.border, width: 0.5)),
-                ),
-                child: Row(
-                  children: [
-                    // Time
-                    SizedBox(
-                      width: 64,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            timeStr,
-                            style: TextStyle(
-                              fontFamily: AppTheme.displayFont,
-                              fontSize: 13,
-                              fontWeight: FontWeight.w600,
-                              color: widget.isOverdue ? AppColors.primary : AppColors.textSecondary,
-                            ),
-                          ),
-                          if (widget.showDate)
+              child: GestureDetector(
+                onTap: () => showEditReminderSheet(context, widget.reminder),
+                behavior: HitTestBehavior.opaque,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  decoration: const BoxDecoration(
+                    border: Border(bottom: BorderSide(color: AppColors.border, width: 0.5)),
+                  ),
+                  child: Row(
+                    children: [
+                      // Time
+                      SizedBox(
+                        width: 64,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                             Text(
-                              DateFormat('EEE, MMM d').format(widget.reminder.scheduledAt),
-                              style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+                              timeStr,
+                              style: TextStyle(
+                                fontFamily: AppTheme.displayFont,
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: widget.isOverdue ? AppColors.primary : AppColors.textSecondary,
+                              ),
                             ),
-                        ],
+                            if (widget.showDate)
+                              Text(
+                                DateFormat('EEE, MMM d').format(widget.reminder.scheduledAt),
+                                style: const TextStyle(fontSize: 10, color: AppColors.textMuted),
+                              ),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    // Content
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            widget.reminder.title,
-                            style: const TextStyle(
-                              fontFamily: AppTheme.displayFont,
-                              fontSize: 15,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textPrimary,
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          if (widget.reminder.description.isNotEmpty) ...[
-                            const SizedBox(height: 2),
+                      const SizedBox(width: 12),
+                      // Content
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                             Text(
-                              widget.reminder.description,
-                              style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted),
+                              widget.reminder.title,
+                              style: const TextStyle(
+                                fontFamily: AppTheme.displayFont,
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: AppColors.textPrimary,
+                              ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
+                            if (widget.reminder.description.isNotEmpty) ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                widget.reminder.description,
+                                style: const TextStyle(fontSize: 12.5, color: AppColors.textMuted),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           ],
-                        ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 10),
-                    // Category abbreviation
-                    Text(
-                      _categoryAbbr[widget.reminder.category] ?? '',
-                      style: const TextStyle(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.textMuted,
-                        letterSpacing: 0.8,
-                        fontFamily: 'monospace',
+                      const SizedBox(width: 10),
+                      // Category abbreviation
+                      Text(
+                        _categoryAbbr[widget.reminder.category] ?? '',
+                        style: const TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.textMuted,
+                          letterSpacing: 0.8,
+                          fontFamily: 'monospace',
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    // Complete button with green flash
-                    GestureDetector(
-                      onTap: () {
-                        setState(() => _completing = true);
-                        // ponytail: brief green flash before state removes the card
-                        Future.delayed(const Duration(milliseconds: 250), () {
-                          if (mounted) state.markComplete(widget.reminder.id);
-                        });
-                      },
-                      child: AnimatedContainer(
-                        duration: const Duration(milliseconds: 200),
-                        curve: Curves.easeOut,
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: _completing ? AppColors.positive : Colors.transparent,
-                          border: Border.all(
-                            color: _completing ? AppColors.positive : AppColors.border,
-                            width: 1.5,
+                      const SizedBox(width: 12),
+                      // Complete button with green flash
+                      GestureDetector(
+                        onTap: () {
+                          setState(() => _completing = true);
+                          // ponytail: brief visual feedback before state removes the card
+                          Future.delayed(const Duration(milliseconds: 250), () {
+                            if (mounted) state.markComplete(widget.reminder.id);
+                          });
+                        },
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          curve: Curves.easeOut,
+                          width: 32,
+                          height: 32,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: _completing ? AppColors.positive : Colors.transparent,
+                            border: Border.all(
+                              color: _completing ? AppColors.positive : AppColors.border,
+                              width: 1.5,
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.check,
+                            size: 14,
+                            color: _completing ? Colors.white : AppColors.textMuted,
                           ),
                         ),
-                        child: Icon(
-                          Icons.check,
-                          size: 14,
-                          color: _completing ? Colors.white : AppColors.textMuted,
-                        ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
