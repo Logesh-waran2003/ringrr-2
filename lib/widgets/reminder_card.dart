@@ -207,6 +207,31 @@ class _ReminderCardState extends State<ReminderCard> with SingleTickerProviderSt
                             // ignore: use_build_context_synchronously
                             final state = ReminderProvider.of(context);
                             state.markComplete(widget.reminder.id);
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    '"${widget.reminder.title}" completed',
+                                    style: const TextStyle(color: Colors.white, fontSize: 13),
+                                  ),
+                                  duration: const Duration(seconds: 4),
+                                  backgroundColor: const Color(0xFF1A1A1E),
+                                  behavior: SnackBarBehavior.floating,
+                                  margin: const EdgeInsets.fromLTRB(16, 0, 16, 80),
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                                  action: SnackBarAction(
+                                    label: 'Undo',
+                                    textColor: AppColors.primary,
+                                    onPressed: () {
+                                      state.update(widget.reminder.copyWith(
+                                        status: ReminderStatus.pending,
+                                        completedAt: null,
+                                      ));
+                                    },
+                                  ),
+                                ),
+                              );
+                            }
                           });
                         },
                         child: AnimatedContainer(
